@@ -63,6 +63,22 @@ def run_simulation(
     return simulation_matrix
 
 
+def get_velocity_of_wave(
+    simulation_matrix, u_stable, t_min, t_max, delta_step, time_step
+) -> np.ndarray:
+    index = np.arange(t_min, t_max, 500)
+    c_array = np.zeros_like(index, dtype=float)
+
+    conc_search = u_stable / 2
+    for i, time in enumerate(index):
+        x_min = np.abs(simulation_matrix[20:, time] - conc_search).argmin()
+        x_max = np.abs(simulation_matrix[20:, time + delta_step] - conc_search).argmin()
+        # print(np.mean(simulation_matrix[:, time]))
+
+        c_array[i] = ((x_max - x_min) / (delta_step)) / time_step
+    return c_array
+
+
 def plot1():
     rho = 0.5
     q = 8.0
@@ -70,29 +86,37 @@ def plot1():
     u_02 = 1 / 2 * (q - 1 - np.sqrt((q - 1) ** 2 - 4 * q * (1 / rho - 1)))
     xi_0 = 20
     time_step = 0.1
-    sim_time = 10000
+    sim_time = 1001
     habitat_size = 100
 
     sim_matrix = run_simulation(u_01, xi_0, rho, q, habitat_size, sim_time, time_step)
 
-    plot_times = np.array([0, 100, 1000, 10000])
+    plot_steps = np.array([0, 100, 1000, 3000])
     x = np.arange(1, habitat_size + 1, 1)
     fig, ax = plt.subplots(2, 2, sharey=True)
     ax = ax.flatten()
 
-    for idx, time in enumerate(plot_times):
+    for idx, time in enumerate(plot_steps):
         ax[idx].axhline(u_01, label=r"$u_1$", c="black")
         ax[idx].axhline(u_02, label=r"$u_2$", c="red")
         ax[idx].plot(x, sim_matrix[:, time])
         ax[idx].set_xlabel("Position")
         ax[idx].set_ylabel("Concentration")
-        ax[idx].set_title(f"Time = {time}")
+        ax[idx].set_title(f"Time = {time*time_step:0f}")
         ax[idx].grid()
         ax[idx].legend()
 
     fig.suptitle(rf"$\xi_0 =$ {xi_0:.2f}, $u_0 =$ {u_01:.2f}")
     fig.tight_layout()
     fig.savefig("../report/figures/1b1.pdf")
+
+    t_min = int(50 / time_step)
+    t_max = int(300 / time_step)
+    delta_step = int(55.5 / time_step)
+
+    c = get_velocity_of_wave(sim_matrix, u_01, t_min, t_max, delta_step, time_step)
+    print(np.mean(c))
+    print(np.std(c))
 
 
 def plot2():
@@ -231,10 +255,10 @@ def plot5():
 
 def main():
     plot1()
-    plot2()
-    plot3()
-    plot4()
-    plot5()
+    # plot2()
+    # plot3()
+    # plot4()
+    # plot5()
 
 
 if __name__ == "__main__":
