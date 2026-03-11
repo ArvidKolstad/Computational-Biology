@@ -165,7 +165,7 @@ def run_simulation(
     n[:] = starting_infected
     time = np.zeros(samples)
     has_recorded = np.zeros((samples, 3), dtype=bool)
-    saved_times = np.zeros((samples, 3))
+    t_exit = []
     saved_n = np.zeros((samples, 3))
     n_zero = n <= 0
     n_max = n >= total_population
@@ -189,7 +189,6 @@ def run_simulation(
 
         time[t_d_smaller] += t_d[t_d_smaller]
         time[t_b_smaller] += t_b[t_b_smaller]
-        time[n_zero] = np.inf
 
         n[t_b_smaller] += 1
         n[t_d_smaller] -= 1
@@ -198,11 +197,15 @@ def run_simulation(
 
         n_max = n == total_population
 
-        to_save = (~has_recorded) & (time[:, None] >= record_times[None, :])
+        to_save = (~has_recorded) & (
+            (time[:, None] >= record_times[None, :]) | (n_zero[:, None])
+        )
         saved_n[to_save] = np.broadcast_to(n[:, None], (n.shape[0], 3))[to_save]
         has_recorded[to_save] = True
 
     # assert has_recorded.all() == True
+    print(np.mean(time[n_zero]))
+    print(np.sum(n_zero) / samples)
     print(np.sum(has_recorded) / (samples * 3))
 
     return saved_n
@@ -221,15 +224,15 @@ def d():
     beta = 0.1
     N = 1000
     samples = 5000
-    simulation_time = 200000
-    t_record = np.array([100, 486, 4000])
+    simulation_time = 10000000
+    t_record = np.array([5000, 37125, 100000])
 
     print_calculations(alpha, beta, N)
 
     n_start = 107
     variance = N * beta / alpha
     n = run_simulation(samples, t_record, n_start, N, alpha, beta, simulation_time)
-    fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharex=True)
+    fig, axes = plt.subplots(1, 3, figsize=(15, 5), sharey=True, sharex=True)
     for idx, ax in enumerate(axes):
         hist, bins = np.histogram(n[:, idx], bins=100, density=True)
         bin_min = bins[0]
