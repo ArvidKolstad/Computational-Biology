@@ -1,0 +1,120 @@
+\documentclass[15pt]{article}
+	
+\usepackage[margin=1in]{geometry}		% For setting margins
+\usepackage{amssymb}
+\usepackage{amsmath}				% For Math
+\usepackage{fancyhdr}				% For fancy header/footer
+\usepackage{float}
+\usepackage{graphicx}				% For including figure/image
+\usepackage{cancel}					% To use the slash to cancel out stuff in work
+
+%%%%%%%%%%%%%%%%%%%%%%
+% Set up fancy header/footer
+\pagestyle{fancy}
+\fancyhead[LO,L]{Arvid Kolstad - 020814-8452}
+\fancyhead[RO,R]{FFR110 - Homeproblem 3.2}
+\fancyfoot[LO,L]{}
+\fancyfoot[CO,C]{\thepage}
+\fancyfoot[RO,R]{}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+%%%%%%%%%%%%%%%%%%%%%%
+
+\begin{document}
+\section{Asignment 3 problem 2}
+In this report the expression for the marginal distribution $P(S_n = 0)$ and $P(S_2 = j)$ where $S_n$ is the number of Single Nucleotide Polymorphisms (SNPs) in a population of genes. In this assignment we should consider the infinite size model where the population $N \rightarrow \infty$ and the mutation rate $\mu \rightarrow 0$ so that $2N\mu = \theta = \text{constant}$. The model that is being used to derive these expressions is the coalescence process. In this model we only consider binary coalescence of ancestors, no backwards mutations and the mutations that happen are scattered randomly.
+
+\subsection{General solution}
+To create these two expressions we start with deriving a general solution to the probability:
+\begin{equation}
+	P(S_n = k| T_n, T_{n-1}, ... , T_2)
+\end{equation}
+where $T_j$ is the coalescence time for coalescence of $j$ lines. To start, we begin with the expression for the probability of not sampling 2 alleles with the same ancestor in the generation before. This we can write like this:
+\begin{equation}
+	P_2 = 1 - \frac{1}{N}
+\end{equation}
+This is because we have the same probability of every ancestor passing down there specific allele to the next generation and therefore we just have $N-1$ choices to that generate this outcome from the $N$ total choices. If we now keep going and express the probability of sampling 3 alleles who don't share the same ancestor we get:
+\begin{equation}
+	P_3 = (1-\frac{2}{N})P_2
+\end{equation}
+where $1-\frac{2}{N}$ is the probability to choose the third allele to not have the same ancestors as the two chosen in $P_2$.
+With this we can write the probability for n alleles to have different ancestors as following:
+\begin{equation}
+	P_n = \prod_{i=1}^{n-1} (1 - \frac{i}{N})
+\end{equation}
+for $N>>n$ we can approximate this as the following:
+\begin{equation}
+	\prod_{i=1}^{n-1} (1 - \frac{i}{N}) \approx 1 - \frac{1}{N} \sum_{i=1}^{n-1}j = 1-\frac{\binom{n}{2}}{N}
+\end{equation}
+This approximation is done by disregarding all the $\frac{i}{N}$ terms with a higher grade than 1.
+Now we want to create an expression for the probability that for $k$ generations back, all the $n$ samples will have different ancestors but for $k+1$ generations two or more of the samples will have the same ancestor. This is simply:
+\[ P_n^k(1-P_n)\]
+For large $N$ this can be approximated as an exponential which is shown here:
+\begin{equation}
+	log(P^k_n) = k\sum_{i=1}^{n-1} log(1-\frac{i}{N}) k\approx -\frac{1}{N}\sum_ {i=1}^{n-1}i = -k\frac{\binom{n}{2}}{N}
+\end{equation}
+so that:
+\begin{equation}
+	P_n^k(1-P_n) \approx \frac{\binom{n}{2}}{N}e^{-k\frac{\binom{n}{2}}{N}}
+\end{equation}
+If we redefine $k$ as $T_j$ and interpret this number as the number of generations before a coalescence event happen and $\lambda_j = \frac{\binom{n}{2}}{N}$ we get the coalescence algorithm:
+\begin{equation}
+	P(T_j)= \lambda_j e ^ {-\lambda_j T_j}
+\end{equation}
+In this form the mutations are non-existent and to add these we can add the the rate $\mu$ that sets the average mutation rate per allele, per generation. This means that $j\mu T_j$ sets the average rate of mutation per coalescence. Therefore we can describe the number of mutations each time step with the following distribution:
+\begin{equation}
+	P(M_j|T_j) \sim Poisson(j \mu T_i)
+\end{equation}
+We can also say that the sum of the mutations each time step is equal to the total number of mutations which makes the following expression true:
+\begin{equation}
+	\mathbb{E}(S_n) = \mathbb{E}(\sum_{j=2}^n M_j) = \sum_{j=2}^n j\mu T_j = \mu T_c
+\end{equation}
+if we define as:
+\begin{equation}
+	T_c = \sum_{j = 2}^n
+	\label{eq:T_c}
+\end{equation}
+We can now express the general probability as following:
+\begin{equation}
+	P(S_n = k |T_n, T_{n-1},..., T_2) = \frac{(\mu T_c)^k}{k!}e^{-\mu T_c}
+	\label{eq:general equation}
+\end{equation}
+
+\subsection{a)}
+In this part of the assignment we are supposed to derive the probability for $P(S_n = 0)$ as previously mentioned. We start with setting $k = 0$ in equation \ref{eq:general equation} and receive the following expression:
+\begin{equation}
+	P(S_n = 0 |T_n, T_{n-1},..., T_2) = e^{-\mu T_c}
+\end{equation}
+Because of equation \ref{eq:T_c} we can integrate the expression over every $T_j$ to get the total probability, and because every $T_j$ is independent of each other we can express it as a product of integrals like:
+\begin{equation}
+	P(S_n = 0 )= \prod_{j=2}^n\int_0^\infty P(S_n=0|T_j)P(T_j)=\prod_{j=2}^n \int_0^\infty \lambda_j e^{-(j\mu +\lambda_j)T_j}dT_j = \prod_{j=2}^n\lambda_j\left[-\frac{e^{-(j\mu + \lambda_j)T_j}}{j\mu + \lambda_j} \right]^\infty_0
+	\label{eq:}
+\end{equation}
+evaluation of this expression gives us the following:
+\begin{equation}
+	P(S_n = 0)= \prod_{j=2}^{n}\frac{\lambda_j}{j\mu + \lambda_j} = \frac{\frac{j(j-1)}{2N}}{j\mu + \frac{j(j-1)}{2N}} = \prod_{j=2}^n\frac{j-1}{\theta + j-1} = \prod_{j=1}^{n-1} \frac{j}{\theta + j}
+\end{equation}
+which is the expression we have searched for.
+
+\subsection{b)}
+In this part we will derive the expression for $P(S_2 = j)$. If we start with the general expression and substitute $n=2$ we get:
+\begin{equation}
+	P(S_2 = k| T_2)= \frac{(2\mu T_2)^k}{k!}e^{-2\mu T_2}
+\end{equation}
+to get the total probability we do the following:
+\begin{equation}
+	P(S_2 = j)= \int_0^\infty P(S_2 = k|T_2)P(T_2)dT_2 = \int_0^\infty \lambda_2\frac{(2\mu T_2)^k}{k!}e^{-(2\mu + \lambda_2) T_2} = \lambda_2\frac{(2\mu)^k}{k!}\int_0^\infty T_2^ke^{-(2\mu+ \lambda_2)T_2}
+	\label{eq:b}
+\end{equation}
+The integral to the left is can be solved analytically by continuous integration by parts to obtain the following expression:
+\begin{equation}
+	\int_0^\infty T_2^ke^{-(2\mu +\lambda_2)T_2} = \frac{k!}{(2\mu +\lambda_2)^{k+1}}
+\end{equation}
+If we now set $\lambda_2 = \frac{1}{N}$ and evaluate equation \ref{eq:b} we get the following
+\begin{equation}
+	P(S_2 = k) = \left(\frac{2\mu}{(2\mu + \frac{1}{N})}\right)^k\frac{1}{2\mu + \frac{1}{N}}\frac{1}{N} = \frac{1}{\theta + 1}\left( \frac{\theta}{\theta + 1}\right)^k
+\end{equation}
+where we used that $2N\mu = \theta$. Now we proved what we wanted to prove.
+
+
+\end{document}
